@@ -315,7 +315,7 @@
   </div>
   <div id="game-container">
     <div class="character player" id="player">
-      <div class="char-name">Hero</div>
+      <div class="char-name">rifqi</div>
       <img src="https://i.ibb.co/XYbzcXF/hero.png" alt="Hero" />
       <div class="health-bar-container">
         <div class="health-bar" id="player-health-bar">
@@ -344,29 +344,29 @@
   (() => {
     // Base enemy stats for each difficulty
     const difficultySettings = {
-      easy:    { hp: 100, atkMin: 8,  atkMax: 16, skillDmgMin: 20, skillDmgMax: 30, skillCooldown: 3 },
-      medium:  { hp: 130, atkMin: 12, atkMax: 24, skillDmgMin: 28, skillDmgMax: 42, skillCooldown: 4 },
-      hard:    { hp: 160, atkMin: 16, atkMax: 32, skillDmgMin: 36, skillDmgMax: 50, skillCooldown: 5 }
+      easy:    { hp: 1000, atkMin: 1,  atkMax: 1, skillDmgMin: 40, skillDmgMax: 40, skillCooldown: 2 },
+      medium:  { hp: 200, atkMin: 12, atkMax: 24, skillDmgMin: 28, skillDmgMax: 42, skillCooldown: 4 },
+      hard:    { hp: 300, atkMin: 16, atkMax: 32, skillDmgMin: 36, skillDmgMax: 50, skillCooldown: 5 }
     };
 
     // Player fixed stats
     const player = {
-      name: 'Hero',
-      maxHp: 120,
-      hp: 120,
-      attackMin: 15,
-      attackMax: 28,
+      name: 'rifqi',
+      maxHp: 200,
+      hp: 200,
+      attackMin: 20,
+      attackMax: 30,
       skillName: 'Tebasan Dimensi',
-      skillDamageMin: 30,
+      skillDamageMin: 40,
       skillDamageMax: 45,
-      skillCooldown: 3,
+      skillCooldown: 1,
       skillCooldownCounter: 0,
     };
 
     // Enemy stats initialized after difficulty selection
     let enemy = {
       name: 'Enemy',
-      maxHp: 120,
+      maxHp: 1000,
       hp: 120,
       attackMin: 12,
       attackMax: 22,
