@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RPG Turn-Based Battle with Difficulty & Skills</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto&display=swap');
+
+  :root {
+    --player-color: #4caf50;
+    --enemy-color: #e53e3e;
+    --background: linear-gradient(135deg, #1e2a78, #23286b);
+    --health-bg: #222;
+    --button-bg: #2d6a4f;
+    --button-hover: #40916c;
+    --damage-color: #f87171;
+    --heal-color: #68d391;
+    --shadow-color: rgba(0,0,0,0.7);
+    --skill-color-player: #68d391;
+    --skill-color-enemy: #f87171;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: var(--background);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    text-shadow: 0 0 10px #fff7d1;
+  }
+
+  #game-container {
+    width: 90%;
+    max-width: 900px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 20px;
+    box-shadow: 0 0 30px var(--shadow-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 20px;
+  }
+
+  .character {
+    flex: 1 1 40%;
+    background: #141414cc;
+    border-radius: 15px;
+    padding: 15px;
+    position: relative;
+    box-shadow: 0 0 15px rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .char-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffd166;
+    text-shadow: 0 0 5px #f9c846;
+  }
+
+  .character img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
+  }
+
+  .health-bar-container {
+    width: 100%;
+    height: 24px;
+    background: var(--health-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 6px #000000aa;
+    margin: 15px 0;
+  }
+
+  .health-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #4caf50, #88e88e);
+    border-radius: 12px 0 0 12px;
+    transition: width 0.6s ease;
+    box-shadow: inset 0 0 6px rgba(255,255,255,0.3);
+    position: relative;
+  }
+
+  .enemy .health-bar {
+    background: linear-gradient(90deg, #e53e3e, #f98a8a);
+  }
+
+  .health-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 0 3px black;
+    user-select: none;
+    top: 2px;
+    font-size: 0.9rem;
+  }
+
+  #message {
+    margin: 20px 0;
+    font-size: 1.3rem;
+    min-height: 2em;
+    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 8px #fff;
+  }
+
+  #difficulty-container {
+    margin-bottom: 15px;
+  }
+
+  #difficulty-container label {
+    margin: 0 15px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  #actions {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  button {
+    font-family: 'Orbitron', sans-serif;
+    padding: 12px 30px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    border: none;
+    background-color: var(--button-bg);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 12px var(--button-bg);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+    margin: 0 10px;
+    min-width: 140px;
+  }
+
+  button:hover:enabled {
+    background-color: var(--button-hover);
+    box-shadow: 0 0 18px var(--button-hover);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .damage-text {
+    position: absolute;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--damage-color);
+    text-shadow: 0 0 8px #ff4d4d;
+    pointer-events: none;
+    animation: floatUp 1s forwards;
+  }
+
+  .skill-damage-text {
+    position: absolute;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: #68d391;
+    text-shadow: 0 0 12px #71f578;
+    pointer-events: none;
+    animation: floatUpSkill 1.3s forwards;
+  }
+
+  .enemy-skill-damage-text {
+    color: #f87171;
+    text-shadow: 0 0 12px #f54242;
+  }
+
+  @keyframes floatUp {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-40px) scale(1.4);
+    }
+  }
+
+  @keyframes floatUpSkill {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1.1);
+    }
+    50% {
+      transform: translateY(-25px) scale(1.3);
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-60px) scale(1.6);
+    }
+  }
+
+  .flash {
+    animation: flashRed 0.4s ease 0s 2;
+  }
+
+  @keyframes flashRed {
+    0%, 100% { filter: none; }
+    50% { filter: drop-shadow(0 0 10px red); }
+  }
+
+  .shake {
+    animation: shake 0.5s linear;
+  }
+
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+
+  .skill-glow {
+    animation: skillGlow 1.5s ease forwards;
+  }
+
+  @keyframes skillGlow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(104, 211, 145, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 25px 15px rgba(104, 211, 145, 0.7);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(104, 211, 145, 0);
+    }
+  }
+
+  .enemy-skill-glow {
+    animation: enemySkillGlow 1.5s ease forwards;
+  }
+  @keyframes enemySkillGlow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 25px 15px rgba(248, 113, 113, 0.7);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    #game-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    .character {
+      flex-basis: 80%;
+      margin-bottom: 20px;
+    }
+    .character img {
+      width: 120px;
+      height: 120px;
+    }
+    #actions button {
+      min-width: 120px;
+      margin: 8px 6px;
+    }
+    #difficulty-container label {
+      margin: 0 8px;
+      font-size: 0.85rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>RPG Turn-Based Battle with Difficulty & Skills</h1>
+  <div id="difficulty-container">
+    <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
+    <label><input type="radio" name="difficulty" value="medium"> Medium</label>
+    <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+  </div>
+  <div id="game-container">
+    <div class="character player" id="player">
+      <div class="char-name">Hero</div>
+      <img src="https://i.ibb.co/XYbzcXF/hero.png" alt="Hero" />
+      <div class="health-bar-container">
+        <div class="health-bar" id="player-health-bar">
+          <div class="health-text" id="player-health-text"></div>
+        </div>
+      </div>
+    </div>
+    <div class="character enemy" id="enemy">
+      <div class="char-name">Enemy</div>
+      <img src="https://i.ibb.co/mCyj3mn/enemy.png" alt="Enemy" />
+      <div class="health-bar-container">
+        <div class="health-bar" id="enemy-health-bar">
+          <div class="health-text" id="enemy-health-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="message">Select difficulty and press "Start Battle" to begin!</div>
+  <div id="actions">
+    <button id="start-btn">Start Battle</button>
+    <button id="attack-btn" disabled>Attack</button>
+    <button id="skill-btn" disabled>Special Skill</button>
+  </div>
+
+<script>
+  (() => {
+    // Base enemy stats for each difficulty
+    const difficultySettings = {
+      easy:    { hp: 100, atkMin: 8,  atkMax: 16, skillDmgMin: 20, skillDmgMax: 30, skillCooldown: 3 },
+      medium:  { hp: 130, atkMin: 12, atkMax: 24, skillDmgMin: 28, skillDmgMax: 42, skillCooldown: 4 },
+      hard:    { hp: 160, atkMin: 16, atkMax: 32, skillDmgMin: 36, skillDmgMax: 50, skillCooldown: 5 }
+    };
+
+    // Player fixed stats
+    const player = {
+      name: 'Hero',
+      maxHp: 120,
+      hp: 120,
+      attackMin: 15,
+      attackMax: 28,
+      skillName: 'Tebasan Dimensi',
+      skillDamageMin: 30,
+      skillDamageMax: 45,
+      skillCooldown: 3,
+      skillCooldownCounter: 0,
+    };
+
+    // Enemy stats initialized after difficulty selection
+    let enemy = {
+      name: 'Enemy',
+      maxHp: 120,
+      hp: 120,
+      attackMin: 12,
+      attackMax: 22,
+      skillName: 'Inferno Blast',
+      skillDamageMin: 28,
+      skillDamageMax: 40,
+      skillCooldown: 4,
+      skillCooldownCounter: 0,
+    };
+
+    let playerTurn = true;
+    let gameActive = false;
+
+    const messageEl = document.getElementById('message');
+    const startBtn = document.getElementById('start-btn');
+    const attackBtn = document.getElementById('attack-btn');
+    const skillBtn = document.getElementById('skill-btn');
+    const diffRadios = [...document.querySelectorAll('input[name="difficulty"]')];
+
+    const playerHealthBar = document.getElementById('player-health-bar');
+    const enemyHealthBar = document.getElementById('enemy-health-bar');
+
+    const playerHealthText = document.getElementById('player-health-text');
+    const enemyHealthText = document.getElementById('enemy-health-text');
+
+    const playerCharEl = document.getElementById('player');
+    const enemyCharEl = document.getElementById('enemy');
+
+    function updateHealthBars() {
+      playerHealthBar.style.width = (player.hp / player.maxHp * 100) + '%';
+      enemyHealthBar.style.width = (enemy.hp / enemy.maxHp * 100) + '%';
+
+      playerHealthText.textContent = `${player.hp} / ${player.maxHp}`;
+      enemyHealthText.textContent = `${enemy.hp} / ${enemy.maxHp}`;
+    }
+
+    function randomRange(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function showDamage(characterEl, damage, isSkill = false, isEnemy = false) {
+      const dmgText = document.createElement('div');
+      dmgText.classList.add(isSkill ? 'skill-damage-text' : 'damage-text');
+      if (isSkill && isEnemy) {
+        dmgText.classList.add('enemy-skill-damage-text');
+      }
+      dmgText.style.left = `${Math.random() * 70 + 30}%`;
+      dmgText.style.top = `${Math.random() * 50 + 20}px`;
+      dmgText.textContent = "-" + damage;
+      characterEl.appendChild(dmgText);
+      setTimeout(() => {
+        dmgText.remove();
+      }, isSkill ? 1300 : 1000);
+    }
+
+    function animateAttack(attackerEl, targetEl) {
+      targetEl.classList.add('shake');
+      targetEl.classList.add('flash');
+      setTimeout(() => {
+        targetEl.classList.remove('shake');
+        targetEl.classList.remove('flash');
+      }, 500);
+      attackerEl.animate([
+        { transform: 'scale(1)'},
+        { transform: 'scale(1.1)'},
+        { transform: 'scale(1)'}
+      ], {
+        duration: 500,
+        easing: 'ease-in-out',
+      });
+    }
+
+    function animateSkill(attackerEl, targetEl, isEnemy=false) {
+      // Glow animation on attacker
+      attackerEl.classList.add(isEnemy ? 'enemy-skill-glow' : 'skill-glow');
+      // Shake and flash target stronger
+      targetEl.classList.add('shake');
+      targetEl.classList.add('flash');
+      setTimeout(() => {
+        targetEl.classList.remove('shake');
+        targetEl.classList.remove('flash');
+        attackerEl.classList.remove(isEnemy ? 'enemy-skill-glow' : 'skill-glow');
+      }, 1000);
+      // Pulse attacker bigger
+      attackerEl.animate([
+        { transform: 'scale(1)'},
+        { transform: 'scale(1.3)'},
+        { transform: 'scale(1)'}
+      ], {
+        duration: 1000,
+        easing: 'ease-in-out',
+      });
+    }
+
+    function updateSkillCooldowns() {
+      if (player.skillCooldownCounter > 0) player.skillCooldownCounter--;
+      if (enemy.skillCooldownCounter > 0) enemy.skillCooldownCounter--;
+    }
+
+    function updateButtons() {
+      if(!gameActive) {
+        attackBtn.disabled = true;
+        skillBtn.disabled = true;
+        diffRadios.forEach(radio => radio.disabled = false);
+        startBtn.disabled = false;
+      } else if(playerTurn) {
+        attackBtn.disabled = false;
+        skillBtn.disabled = player.skillCooldownCounter > 0;
+        skillBtn.textContent = player.skillCooldownCounter > 0 ? `SKILL (${player.skillCooldownCounter})` : 'Special Skill';
+        diffRadios.forEach(radio => radio.disabled = true);
+        startBtn.disabled = false;
+      } else {
+        attackBtn.disabled = true;
+        skillBtn.disabled = true;
+        diffRadios.forEach(radio => radio.disabled = true);
+        startBtn.disabled = false;
+      }
+    }
+
+    function checkGameOver() {
+      if (player.hp <= 0) {
+        player.hp = 0;
+        updateHealthBars();
+        messageEl.textContent = "You have been defeated! Game over.";
+        attackBtn.disabled = true;
+        skillBtn.disabled = true;
+        gameActive = false;
+        startBtn.textContent = "Restart";
+        return true;
+      } else if (enemy.hp <= 0) {
+        enemy.hp = 0;
+        updateHealthBars();
+        messageEl.innerHTML = `<span style="color:#68d391; font-weight:bold;">🎉You defeated the enemy! Victory!🎉</span>`;
+        attackBtn.disabled = true;
+        skillBtn.disabled = true;
+        gameActive = false;
+        startBtn.textContent = "Restart";
+        return true;
+      }
+      return false;
+    }
+
+    function enemyPerformAttack(isSkill = false) {
+      if(!gameActive) return;
+      playerTurn = false;
+      updateButtons();
+      if(isSkill) {
+        messageEl.textContent = `Enemy uses ${enemy.skillName}!`;
+      } else {
+        messageEl.textContent = "Enemy attacks...";
+      }
+
+      setTimeout(() => {
+        let damage = 0;
+        if(isSkill) {
+          damage = randomRange(enemy.skillDamageMin, enemy.skillDamageMax);
+          enemy.skillCooldownCounter = enemy.skillCooldown;
+          animateSkill(enemyCharEl, playerCharEl, true);
+          showDamage(playerCharEl, damage, true, true);
+        } else {
+          damage = randomRange(enemy.attackMin, enemy.attackMax);
+          animateAttack(enemyCharEl, playerCharEl);
+          showDamage(playerCharEl, damage);
+        }
+        player.hp -= damage;
+        if(player.hp < 0) player.hp = 0;
+        updateHealthBars();
+
+        if(checkGameOver()) return;
+
+        updateSkillCooldowns();
+
+        playerTurn = true;
+        messageEl.textContent = "Your turn! Choose action.";
+        updateButtons();
+      }, isSkill ? 1200 : 1000);
+    }
+
+    attackBtn.addEventListener('click', () => {
+      if(!gameActive || !playerTurn) return;
+
+      attackBtn.disabled = true;
+      skillBtn.disabled = true;
+      messageEl.textContent = "You attack the enemy!";
+
+      setTimeout(() => {
+        let damage = randomRange(player.attackMin, player.attackMax);
+        enemy.hp -= damage;
+        if (enemy.hp < 0) enemy.hp = 0;
+
+        animateAttack(playerCharEl, enemyCharEl);
+        showDamage(enemyCharEl, damage);
+        updateHealthBars();
+
+        if(checkGameOver()) return;
+
+        updateSkillCooldowns();
+
+        playerTurn = false;
+        messageEl.textContent = "Enemy's turn...";
+        updateButtons();
+
+        setTimeout(() => {
+          // Enemy decides skill or attack (use skill if cooldown ready and 40% chance)
+          const canUseSkill = enemy.skillCooldownCounter === 0;
+          if(canUseSkill && Math.random() < 0.4) {
+            enemyPerformAttack(true);
+          } else {
+            enemyPerformAttack(false);
+          }
+        }, 1200);
+
+      }, 400);
+    });
+
+    skillBtn.addEventListener('click', () => {
+      if(!gameActive || !playerTurn || player.skillCooldownCounter > 0) return;
+
+      attackBtn.disabled = true;
+      skillBtn.disabled = true;
+      messageEl.textContent = `You use ${player.skillName}!`;
+
+      setTimeout(() => {
+        const damage = randomRange(player.skillDamageMin, player.skillDamageMax);
+        enemy.hp -= damage;
+        if (enemy.hp < 0) enemy.hp = 0;
+
+        player.skillCooldownCounter = player.skillCooldown;
+        animateSkill(playerCharEl, enemyCharEl);
+        showDamage(enemyCharEl, damage, true);
+
+        updateHealthBars();
+
+        if(checkGameOver()) return;
+
+        updateSkillCooldowns();
+
+        playerTurn = false;
+        messageEl.textContent = "Enemy's turn...";
+        updateButtons();
+
+        setTimeout(() => {
+          const canUseSkill = enemy.skillCooldownCounter === 0;
+          if(canUseSkill && Math.random() < 0.4) {
+            enemyPerformAttack(true);
+          } else {
+            enemyPerformAttack(false);
+          }
+        }, 1200);
+
+      }, 500);
+    });
+
+    startBtn.addEventListener('click', () => {
+      // Set enemy stats based on selected difficulty
+      const selectedDiff = diffRadios.find(r => r.checked)?.value || 'easy';
+      const stats = difficultySettings[selectedDiff];
+
+      enemy.maxHp = stats.hp;
+      enemy.hp = stats.hp;
+      enemy.attackMin = stats.atkMin;
+      enemy.attackMax = stats.atkMax;
+      enemy.skillDamageMin = stats.skillDmgMin;
+      enemy.skillDamageMax = stats.skillDmgMax;
+      enemy.skillCooldown = stats.skillCooldown;
+      enemy.skillCooldownCounter = 0;
+
+      // Reset player state
+      player.hp = player.maxHp;
+      player.skillCooldownCounter = 0;
+
+      playerTurn = true;
+      gameActive = true;
+
+      updateHealthBars();
+      messageEl.textContent = "Battle started! Your turn.";
+      updateButtons();
+      startBtn.textContent = "Restart";
+    });
+
+    updateHealthBars();
+    updateButtons();
+  })();
+</script>
+</body>
+</html>
