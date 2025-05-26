@@ -3,412 +3,170 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Turn-Based RPG Battle</title>
+<title>Welcome to RPG Battle</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap');
 
-  :root {
-    --player-color: #4caf50;
-    --enemy-color: #e53e3e;
-    --background: linear-gradient(135deg, #1e2a78, #23286b);
-    --health-bg: #222;
-    --button-bg: #2d6a4f;
-    --button-hover: #40916c;
-    --damage-color: #f87171;
-    --heal-color: #68d391;
-    --shadow-color: rgba(0,0,0,0.7);
-  }
-
-  * {
-    box-sizing: border-box;
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1e2a78, #23286b);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
   }
 
   body {
-    margin: 0; padding: 0;
-    font-family: 'Roboto', sans-serif;
-    background: var(--background);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    align-items: center;
-    justify-content: center;
-    overflow-x: hidden;
+    position: relative;
+  }
+
+  .container {
+    text-align: center;
+    z-index: 10;
+    max-width: 600px;
+    padding: 20px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 1.5s ease forwards;
   }
 
   h1 {
     font-family: 'Orbitron', sans-serif;
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    text-shadow: 0 0 10px #fff7d1;
+    font-size: 3.8rem;
+    margin-bottom: 1rem;
+    letter-spacing: 4px;
+    text-shadow: 0 0 12px #ffd166;
+    animation: glow 2.5s ease-in-out infinite alternate;
   }
 
-  #game-container {
-    width: 90%;
-    max-width: 900px;
-    background: rgba(0,0,0,0.7);
-    border-radius: 20px;
-    box-shadow: 0 0 30px var(--shadow-color);
-    padding: 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 20px;
-  }
-
-  .character {
-    flex: 1 1 40%;
-    background: #141414cc;
-    border-radius: 15px;
-    padding: 15px;
-    position: relative;
-    box-shadow: 0 0 15px rgba(255,255,255,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .char-name {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #ffd166;
-    text-shadow: 0 0 5px #f9c846;
-  }
-
-  .character img {
-    width: 150px;
-    height: 150px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 6px rgba(255,255,255,0.3));
-    user-select: none;
-  }
-
-  .health-bar-container {
-    width: 100%;
-    height: 24px;
-    background: var(--health-bg);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: inset 0 0 6px #000000aa;
-    margin: 15px 0;
-  }
-
-  .health-bar {
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, #4caf50, #88e88e);
-    border-radius: 12px 0 0 12px;
-    transition: width 0.6s ease;
-    box-shadow: inset 0 0 6px rgba(255,255,255,0.3);
-    position: relative;
-  }
-
-  .enemy .health-bar {
-    background: linear-gradient(90deg, #e53e3e, #f98a8a);
-  }
-
-  .health-text {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    font-weight: 700;
-    color: white;
-    text-shadow: 0 0 3px black;
-    user-select: none;
-    top: 2px;
-    font-size: 0.9rem;
-  }
-
-  #message {
-    margin: 20px 0;
-    font-size: 1.3rem;
-    min-height: 2em;
-    text-align: center;
-    font-weight: 700;
-    color: #fff;
-    user-select: none;
-    text-shadow: 0 0 8px #fff;
-  }
-
-  #actions {
-    text-align: center;
-  }
-
-  button {
-    font-family: 'Orbitron', sans-serif;
-    padding: 12px 30px;
+  p {
     font-size: 1.2rem;
-    border-radius: 12px;
-    border: none;
-    background-color: var(--button-bg);
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 0 12px var(--button-bg);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    user-select: none;
+    margin-bottom: 3rem;
+    color: #bbb;
   }
 
-  button:hover:enabled {
-    background-color: var(--button-hover);
-    box-shadow: 0 0 18px var(--button-hover);
-  }
-
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  .damage-text {
-    position: absolute;
+  a.button {
+    display: inline-block;
+    text-decoration: none;
     font-weight: 700;
-    font-size: 1.5rem;
-    color: var(--damage-color);
-    text-shadow: 0 0 8px #ff4d4d;
-    pointer-events: none;
-    animation: floatUp 1s forwards;
-    user-select: none;
+    font-size: 1.4rem;
+    color: white;
+    background: linear-gradient(90deg, #68d391, #40a869);
+    padding: 15px 50px;
+    border-radius: 50px;
+    box-shadow: 0 0 25px #68d391cc;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  a.button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -25%;
+    width: 150%;
+    height: 200%;
+    background: rgba(255,255,255,0.3);
+    transform: rotate(25deg);
+    transition: all 0.5s ease;
+  }
+
+  a.button:hover::before {
+    left: 125%;
+    transition: all 0.7s ease;
+  }
+
+  a.button:hover {
+    box-shadow: 0 0 38px #40a869ff;
+    background: linear-gradient(90deg, #40a869, #1b5e20);
+  }
+
+  /* Background animated bubbles */
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    animation: floatUp linear infinite;
+    filter: drop-shadow(0 0 3px rgba(104, 211, 145, 0.3));
+  }
+
+  .bubble:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    left: 10%;
+    bottom: -80px;
+    animation-duration: 20s;
+    animation-delay: 0s;
+  }
+  .bubble:nth-child(2) {
+    width: 50px;
+    height: 50px;
+    left: 25%;
+    bottom: -50px;
+    animation-duration: 18s;
+    animation-delay: 3s;
+  }
+  .bubble:nth-child(3) {
+    width: 100px;
+    height: 100px;
+    left: 70%;
+    bottom: -100px;
+    animation-duration: 22s;
+    animation-delay: 2s;
+  }
+  .bubble:nth-child(4) {
+    width: 40px;
+    height: 40px;
+    left: 85%;
+    bottom: -40px;
+    animation-duration: 16s;
+    animation-delay: 6s;
   }
 
   @keyframes floatUp {
     0% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
+      transform: translateY(0) translateX(0);
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 0.6;
     }
     100% {
+      transform: translateY(-120vh) translateX(30px);
       opacity: 0;
-      transform: translateY(-40px) scale(1.4);
     }
   }
 
-  .flash {
-    animation: flashRed 0.4s ease 0s 2;
-  }
-
-  @keyframes flashRed {
-    0%, 100% { filter: none; }
-    50% { filter: drop-shadow(0 0 10px red); }
-  }
-
-  .shake {
-    animation: shake 0.5s linear;
-  }
-
-  @keyframes shake {
-    0% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-    100% { transform: translateX(0); }
-  }
-
-  /* Responsive */
-  @media (max-width: 700px) {
-    #game-container {
-      flex-direction: column;
-      align-items: center;
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 5px #ffd166, 0 0 15px #ffd166;
     }
-    .character {
-      flex-basis: 80%;
-      margin-bottom: 20px;
+    to {
+      text-shadow: 0 0 20px #ffd166, 0 0 30px #fecb2f;
     }
-    .character img {
-      width: 120px;
-      height: 120px;
-    }
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
   }
 </style>
 </head>
 <body>
-  <h1>RPG Turn-Based Battle</h1>
-  <div id="game-container">
-    <div class="character player" id="player">
-      <div class="char-name">Hero</div>
-      <img src="https://i.ibb.co/XYbzcXF/hero.png" alt="Hero">
-      <div class="health-bar-container">
-        <div class="health-bar" id="player-health-bar">
-          <div class="health-text" id="player-health-text"></div>
-        </div>
-      </div>
-    </div>
-    <div class="character enemy" id="enemy">
-      <div class="char-name">Enemy</div>
-      <img src="https://i.ibb.co/mCyj3mn/enemy.png" alt="Enemy">
-      <div class="health-bar-container">
-        <div class="health-bar" id="enemy-health-bar">
-          <div class="health-text" id="enemy-health-text"></div>
-        </div>
-      </div>
-    </div>
+  <div class="container" role="main" aria-label="Homepage">
+    <h1>Welcome to RPG Battle</h1>
+    <p>Experience an exciting turn-based RPG battle filled with thrilling skills and challenges!</p>
+    <a href="game.html" class="button" aria-label="Start the RPG Battle Game">Start Game</a>
   </div>
-  <div id="message">Press "Start Battle" to begin!</div>
-  <div id="actions">
-    <button id="start-btn">Start Battle</button>
-    <button id="attack-btn" disabled>Attack</button>
-  </div>
-
-<script>
-  (() => {
-    const player = {
-      name: "Hero",
-      maxHp: 100,
-      hp: 100,
-      attackMin: 12,
-      attackMax: 25,
-    };
-    const enemy = {
-      name: "Enemy",
-      maxHp: 120,
-      hp: 120,
-      attackMin: 10,
-      attackMax: 22,
-    };
-
-    let playerTurn = true;
-    let gameActive = false;
-
-    const messageEl = document.getElementById('message');
-    const startBtn = document.getElementById('start-btn');
-    const attackBtn = document.getElementById('attack-btn');
-
-    const playerHealthBar = document.getElementById('player-health-bar');
-    const enemyHealthBar = document.getElementById('enemy-health-bar');
-
-    const playerHealthText = document.getElementById('player-health-text');
-    const enemyHealthText = document.getElementById('enemy-health-text');
-
-    const playerCharEl = document.getElementById('player');
-    const enemyCharEl = document.getElementById('enemy');
-
-    function updateHealthBars() {
-      playerHealthBar.style.width = (player.hp / player.maxHp * 100) + '%';
-      enemyHealthBar.style.width = (enemy.hp / enemy.maxHp * 100) + '%';
-
-      playerHealthText.textContent = `${player.hp} / ${player.maxHp}`;
-      enemyHealthText.textContent = `${enemy.hp} / ${enemy.maxHp}`;
-    }
-
-    function randomRange(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function showDamage(characterEl, damage) {
-      const dmgText = document.createElement('div');
-      dmgText.classList.add('damage-text');
-      dmgText.style.left = `${Math.random() * 70 + 30}%`;
-      dmgText.style.top = `${Math.random() * 50 + 20}px`;
-      dmgText.textContent = "-" + damage;
-      characterEl.appendChild(dmgText);
-      setTimeout(() => {
-        dmgText.remove();
-      }, 1000);
-    }
-
-    function animateAttack(attackerEl, targetEl) {
-      // Shake target and flash
-      targetEl.classList.add('shake');
-      targetEl.classList.add('flash');
-      setTimeout(() => {
-        targetEl.classList.remove('shake');
-        targetEl.classList.remove('flash');
-      }, 500);
-      // Slight pulse on attacker
-      attackerEl.animate([
-        { transform: 'scale(1)'},
-        { transform: 'scale(1.1)'},
-        { transform: 'scale(1)'}
-      ], {
-        duration: 500,
-        easing: 'ease-in-out',
-      });
-    }
-
-    function checkGameOver() {
-      if (player.hp <= 0) {
-        player.hp = 0;
-        updateHealthBars();
-        messageEl.textContent = "You have been defeated! Game over.";
-        attackBtn.disabled = true;
-        gameActive = false;
-        startBtn.textContent = "Restart";
-        return true;
-      } else if (enemy.hp <= 0) {
-        enemy.hp = 0;
-        updateHealthBars();
-        messageEl.textContent = "You defeated the enemy! Victory!";
-        attackBtn.disabled = true;
-        gameActive = false;
-        startBtn.textContent = "Restart";
-        return true;
-      }
-      return false;
-    }
-
-    function enemyAttack() {
-      if(!gameActive) return;
-      playerTurn = false;
-      attackBtn.disabled = true;
-      messageEl.textContent = "Enemy attacks...";
-
-      setTimeout(() => {
-        const damage = randomRange(enemy.attackMin, enemy.attackMax);
-        player.hp -= damage;
-        showDamage(playerCharEl, damage);
-        animateAttack(enemyCharEl, playerCharEl);
-        updateHealthBars();
-
-        if (checkGameOver()) return;
-
-        playerTurn = true;
-        messageEl.textContent = "Your turn! Click Attack!";
-        attackBtn.disabled = false;
-      }, 1200);
-    }
-
-    attackBtn.addEventListener('click', () => {
-      if(!gameActive || !playerTurn) return;
-
-      attackBtn.disabled = true;
-      messageEl.textContent = "You attack the enemy!";
-
-      // Player attack animation & damage
-      setTimeout(() => {
-        const damage = randomRange(player.attackMin, player.attackMax);
-        enemy.hp -= damage;
-        showDamage(enemyCharEl, damage);
-        animateAttack(playerCharEl, enemyCharEl);
-        updateHealthBars();
-
-        if (checkGameOver()) return;
-
-        // Enemy turn after short delay
-        setTimeout(() => {
-          enemyAttack();
-        }, 1000);
-      }, 400);
-    });
-
-    startBtn.addEventListener('click', () => {
-      // Reset game state
-      player.hp = player.maxHp;
-      enemy.hp = enemy.maxHp;
-      playerTurn = true;
-      gameActive = true;
-      updateHealthBars();
-      messageEl.textContent = "Battle started! Your turn. Click Attack!";
-      attackBtn.disabled = false;
-      startBtn.textContent = "Restart";
-    });
-
-    // Initialize display
-    updateHealthBars();
-  })();
-</script>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
 </body>
 </html>
-
